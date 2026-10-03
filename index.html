@@ -41,7 +41,6 @@
   <section id="customer-section" class="space-y-6">
 
     <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-
       <h2 class="text-xl font-bold mb-4 text-gray-900">
         Check Your Loan Status
       </h2>
@@ -94,8 +93,13 @@
         </div>
 
         <div>
-          <p class="text-sm text-gray-500">Amount</p>
+          <p class="text-sm text-gray-500">Loan Amount</p>
           <p id="res-amount" class="text-2xl font-extrabold text-blue-600"></p>
+        </div>
+
+        <div>
+          <p class="text-sm text-gray-500">Fee</p>
+          <p id="res-fee" class="text-xl font-bold text-gray-800"></p>
         </div>
 
         <div>
@@ -202,10 +206,10 @@
           </div>
 
 
-          <!-- AMOUNT -->
+          <!-- LOAN AMOUNT -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-              Amount
+              Loan Amount
             </label>
 
             <input
@@ -215,6 +219,24 @@
               min="0"
               step="0.01"
               placeholder="1000"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            >
+          </div>
+
+
+          <!-- FEE -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Fee
+            </label>
+
+            <input
+              type="number"
+              id="admin-fee"
+              required
+              min="0"
+              step="0.01"
+              placeholder="100"
               class="w-full px-4 py-2 border border-gray-300 rounded-lg"
             >
           </div>
@@ -315,7 +337,6 @@ const firebaseConfig = {
 
 
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
 
 
@@ -336,17 +357,13 @@ window.showTab = function(tabName) {
 
   document.getElementById('tab-customer').className =
     tabName === 'customer'
-
       ? "px-4 py-2 rounded-lg font-medium bg-white text-blue-600 shadow"
-
       : "px-4 py-2 rounded-lg font-medium text-blue-100 hover:bg-blue-700";
 
 
   document.getElementById('tab-admin').className =
     tabName === 'admin'
-
       ? "px-4 py-2 rounded-lg font-medium bg-white text-blue-600 shadow"
-
       : "px-4 py-2 rounded-lg font-medium text-blue-100 hover:bg-blue-700";
 
 };
@@ -357,10 +374,7 @@ window.showTab = function(tabName) {
 window.lookupTransaction = async function() {
 
   const refInput =
-    document
-      .getElementById('search-ref')
-      .value
-      .trim();
+    document.getElementById('search-ref').value.trim();
 
   const resultCard =
     document.getElementById('result-card');
@@ -373,9 +387,7 @@ window.lookupTransaction = async function() {
 
 
   resultCard.classList.add('hidden');
-
   notFound.classList.add('hidden');
-
   errorBanner.classList.add('hidden');
 
 
@@ -415,10 +427,20 @@ window.lookupTransaction = async function() {
         Number(data.amount || 0);
 
 
+      const fee =
+        Number(data.fee || 0);
+
+
       document.getElementById('res-amount').innerText =
         currency.toUpperCase() +
         " " +
         amount.toLocaleString();
+
+
+      document.getElementById('res-fee').innerText =
+        currency.toUpperCase() +
+        " " +
+        fee.toLocaleString();
 
 
       document.getElementById('res-date').innerText =
@@ -491,24 +513,15 @@ window.createTransaction = async function(e) {
 
 
   const ref =
-    document
-      .getElementById('admin-ref')
-      .value
-      .trim();
+    document.getElementById('admin-ref').value.trim();
 
 
   const beneficiaryName =
-    document
-      .getElementById('admin-beneficiary')
-      .value
-      .trim();
+    document.getElementById('admin-beneficiary').value.trim();
 
 
   const beneficiaryAccount =
-    document
-      .getElementById('admin-account')
-      .value
-      .trim();
+    document.getElementById('admin-account').value.trim();
 
 
   const currency =
@@ -521,22 +534,22 @@ window.createTransaction = async function(e) {
 
   const amount =
     Number(
-      document
-        .getElementById('admin-amount')
-        .value
+      document.getElementById('admin-amount').value
+    );
+
+
+  const fee =
+    Number(
+      document.getElementById('admin-fee').value
     );
 
 
   const date =
-    document
-      .getElementById('admin-date')
-      .value;
+    document.getElementById('admin-date').value;
 
 
   const status =
-    document
-      .getElementById('admin-status')
-      .value;
+    document.getElementById('admin-status').value;
 
 
   const successMsg =
@@ -553,7 +566,14 @@ window.createTransaction = async function(e) {
   if (!currency) {
 
     alert("Please enter a currency code.");
+    return;
 
+  }
+
+
+  if (fee < 0) {
+
+    alert("Fee cannot be negative.");
     return;
 
   }
@@ -574,6 +594,8 @@ window.createTransaction = async function(e) {
         currency: currency,
 
         amount: amount,
+
+        fee: fee,
 
         date: date,
 
